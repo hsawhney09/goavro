@@ -22,6 +22,15 @@ func nullNativeFromBinary(buf []byte) (interface{}, []byte, error) { return nil,
 
 func nullBinaryFromNative(buf []byte, datum interface{}) ([]byte, error) {
 	if datum != nil {
+		switch datum.(type) {
+		// Workaround for incorrect IMC Avro schema specification
+		case string:
+			if datum != "" {
+				return nil, fmt.Errorf("cannot encode non null string: expected: empty string; received: %T", datum)
+			} else {
+				return buf, nil
+			}
+		}
 		return nil, fmt.Errorf("cannot encode binary null: expected: Go nil; received: %T", datum)
 	}
 	return buf, nil
